@@ -31,7 +31,7 @@ of the JSON stream. Decoder errors are expected during the early parts of the
 stream, when the JSON document doesn't have at least one partial key-value.
 
 ```go
-import "json"
+import "encoding/json"
 
 type MyType struct {
   Foo string `json:"foo"`
