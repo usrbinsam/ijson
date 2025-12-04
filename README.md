@@ -44,7 +44,7 @@ llmChan := make(chan string)
 go receiveFromLLM(llmChan)
 
 for {
-  v, ok := <-llm
+  v, ok := <-llmChan
 
   if !ok {
     break
