@@ -99,10 +99,20 @@ func Test_JSONBuilder(t *testing.T) {
 	}
 }
 
-//go:embed partial_test.txt
+//go:embed trailing_escape.txt
 var s string
 
-func Test_JSONBuilder_01(t *testing.T) {
-	builder := ijson.JSONBuilder[testStruct]{}
+func Test_JSONBuilder_TrailingEscape(t *testing.T) {
+	type output struct {
+		Message string `json:"message"`
+	}
+
+	builder := ijson.NewJSONBuilder[output](json.Unmarshal)
 	builder.Write(s)
+	_, err := builder.Value()
+	if err != nil {
+		t.Errorf("expected err = nil, got err = %v", err)
+		t.Errorf("LIFO = %v", builder.LIFO())
+		t.Errorf("JSON = %v", builder.String())
+	}
 }

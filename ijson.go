@@ -71,6 +71,8 @@ func (b *JSONBuilder[T]) lastAutoClosed() rune {
 
 // Write process the given characters and appends them to
 // the internal JSON string.
+// Write panics in cases when tokens arrive that result in
+// a syntax error in the final JSON output.
 func (b *JSONBuilder[T]) Write(in string) {
 	b.stringBuilder.Grow(len(in))
 	for _, c := range in {
@@ -101,10 +103,6 @@ func (b *JSONBuilder[T]) Write(in string) {
 			b.lifo = append(b.lifo, ']')
 			b.trailingComma = false
 		case '"':
-			if b.escapeNext {
-				b.escapeNext = false
-				break S
-			}
 			if b.lastAutoClosed() == '"' {
 				b.lifo = b.lifo[:len(b.lifo)-1]
 				b.inQuote = false
@@ -124,7 +122,7 @@ func (b *JSONBuilder[T]) Write(in string) {
 				panic("received closing brace after a comma")
 			}
 		case ']':
-			if b.inQuote || b.escapeNext {
+			if b.inQuote {
 				break S
 			}
 			if b.lastAutoClosed() == ']' {
@@ -152,6 +150,10 @@ func (b *JSONBuilder[T]) String() string {
 	_ = copy(reversed, b.lifo)
 	slices.Reverse(reversed)
 	strbuf := b.stringBuilder.String()
+	// handle trailing escape
+	if b.escapeNext {
+		strbuf = strbuf[:len(strbuf)-1]
+	}
 	if b.trailingComma {
 		return strings.TrimSpace(strbuf[:b.trailingCommaIndex]) + string(reversed)
 	}
